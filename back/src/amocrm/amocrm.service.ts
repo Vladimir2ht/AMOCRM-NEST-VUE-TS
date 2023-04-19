@@ -2,18 +2,17 @@ import { resolve } from "path";
 import { readFileSync, writeFileSync } from "fs";
 import { Injectable } from '@nestjs/common';
 import { Client } from 'amocrm-js';
-// import { HttpService } from '@nestjs/common';
 // import { ConfigService } from '@nestjs/config';
+
+interface Properties {
+  [key: string]: any;
+}
 
 @Injectable()
 export class AmoCRMService {
   private readonly amocrm: Client;
 
   constructor() {
-    // const domain = this.configService.get<string>('AMOCRM_SUBDOMAIN');
-    // const clientId = this.configService.get<string>('AMOCRM_CLIENT_ID');
-    // const clientSecret = this.configService.get<string>('AMOCRM_CLIENT_SECRET');
-    // const redirectUri = this.configService.get<string>('AMOCRM_REDIRECT_URI');
 
     this.amocrm = new Client({
       domain: 'gafale7819',
@@ -40,7 +39,6 @@ export class AmoCRMService {
       console.log('t_ref')
     }
     
-    // const run = async () => {
     (async () => {
       const filePath = resolve(__dirname, './token.json');
       let renewTimeout: NodeJS.Timeout;
@@ -68,8 +66,28 @@ export class AmoCRMService {
   }
 
   async getLeads(query: string ) {
-    query = (query) ? '/api/v4/leads?name=' + query : '/api/v4/leads';
-    return await this.amocrm.request.get(query);
+    console.log(2, query);
+    query = (query.length > 2) ? '/api/v4/leads?with=contacts&query=' + query : '/api/v4/leads?with=contacts';
+    let leads: Properties = await this.amocrm.request.get(query)
+    leads = leads.data._embedded.leads;
+
+    // async function GetAdditionalInfo(where: string, ) {
+      
+    // }
+    
+    (await Promise.all( leads.map(lead => {
+      return this.amocrm.request.get(`/api/v4/leads/pipelines/${lead.pipeline_id}/statuses/${lead.status_id}`)
+    }))).forEach((element, i) => {
+      leads[i].status_id = element.data.name
+    });
+
+    (await Promise.all( leads.map(lead => {
+      return this.amocrm.request.get(`/api/v4/users/${lead.responsible_user_id}`)
+    }))).forEach((element, i) => {
+      leads[i].responsible_user_id = element.data.name
+    });
+
+    return leads;
 	}  
 
 }

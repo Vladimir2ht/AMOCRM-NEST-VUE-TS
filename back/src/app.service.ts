@@ -8,8 +8,9 @@ export class AppService {
     @Inject(AmoCRMService) private readonly CRMService: AmoCRMService,
   ) {}
 
-  async getLeads() {
-    const it = await this.CRMService.getLeads('')
+  async getLeads(query) {
+    let it: any = await this.CRMService.getLeads(query);
+    // it = it.data._embedded
     console.log('+', it);
     // return "Hornet";
 
