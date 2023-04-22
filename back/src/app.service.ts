@@ -11,9 +11,9 @@ export class AppService {
   async getLeads(query) {
     let it: any = await this.CRMService.getLeads(query);
     // it = it.data._embedded
-    console.log('+', it);
+    console.log('+');
     // return "Hornet";
 
-    return it;
+    return JSON.stringify(it);
   }
 }

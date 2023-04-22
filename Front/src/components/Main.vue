@@ -6,7 +6,7 @@
 			<Card title="Список сделок">
 				<template #extra>
 					<!-- <WarningOutlined :style="{fontSize: '16px', color: 'orange'}" /> -->
-					<Input v-model="value" @change="search($event)" placeholder="Поиск сделок">
+					<Input v-model="query" @change="search($event)" placeholder="Поиск сделок">
 						<template #suffix>
 							<SearchOutlined :style="{fontSize: '16px'}" />
 							<!-- <Tooltip title="Action search" placement="right">
@@ -15,12 +15,7 @@
 						</template>
 					</Input>
 				</template>
-				<Table :dataSource="data" :columns="columns">
-					<!-- <template #bodyCell="{ column }">
-						<template v-if="column.key === 'action'">
-							<a>Delete</a>
-						</template>
-					</template> -->
+				<Table :dataSource="leadsData" :columns="columns">
 					<template #expandedRowRender="{ record }">
 						<p style="margin: 0">
 							{{ record.description }}
@@ -41,21 +36,20 @@
 		name: string;
 		[key: string]: any;
 	}
+	let query = ref<string>('');
 
 	const columns = [
-		{ title: 'Название', dataIndex: 'name', key: 'name' },
-		{ title: 'Статус', dataIndex: 'status_id', key: 'status_id' },
-		{ title: 'Ответственный', dataIndex: 'responsible_user_id', key: 'responsible_user_id' },
-		{ title: 'Дата создания', dataIndex: 'created_at', key: 'created_at' },
-		{ title: 'Бюджет', dataIndex: 'price', key: 'price' },
+		{ title: 'Название', dataIndex: 'name', key: 'id' },
+		{ title: 'Статус', dataIndex: 'status_id', key: 'id' },
+		{ title: 'Ответственный', dataIndex: 'responsible_user_id', key: 'id' },
+		{ title: 'Дата создания', dataIndex: 'created_at', key: 'id' },
+		{ title: 'Бюджет', dataIndex: 'price', key: 'id' },
 	];
-	let data = ref<lead[]>([{"id":824971,"name":"Покупка морепродуктов","price":600,"responsible_user_id":"Олег","group_id":0,"status_id":"Принимают решение","pipeline_id":6691762,"loss_reason_id":null,"created_by":9496334,"updated_by":9496334,"created_at":1681646994,"updated_at":1681647077,"closed_at":null,"closest_task_at":null,"is_deleted":false,"custom_fields_values":null,"score":null,"account_id":31001782,"labor_cost":null,"_links":{"self":{"href":"https://gafale7819.amocrm.ru/api/v4/leads/824971?with=contacts&page=1&limit=50"}},"_embedded":{"tags":[],"companies":[{"id":1558243,"_links":{"self":{"href":"https://gafale7819.amocrm.ru/api/v4/companies/1558243?with=contacts&page=1&limit=50"}}}],"contacts":[{"id":1558245,"is_main":true,"_links":{"self":{"href":"https://gafale7819.amocrm.ru/api/v4/contacts/1558245?with=contacts&page=1&limit=50"}}}]}},{"id":825005,"name":"Закупка техники","price":550,"responsible_user_id":"Олег","group_id":0,"status_id":"Переговоры","pipeline_id":6691762,"loss_reason_id":null,"created_by":9496334,"updated_by":9496334,"created_at":1681647221,"updated_at":1681647255,"closed_at":null,"closest_task_at":null,"is_deleted":false,"custom_fields_values":null,"score":null,"account_id":31001782,"labor_cost":null,"_links":{"self":{"href":"https://gafale7819.amocrm.ru/api/v4/leads/825005?with=contacts&page=1&limit=50"}},"_embedded":{"tags":[],"companies":[{"id":1558279,"_links":{"self":{"href":"https://gafale7819.amocrm.ru/api/v4/companies/1558279?with=contacts&page=1&limit=50"}}}],"contacts":[{"id":1558281,"is_main":true,"_links":{"self":{"href":"https://gafale7819.amocrm.ru/api/v4/contacts/1558281?with=contacts&page=1&limit=50"}}}]}}])
+	// let leadsData = ref<any>([{"id":824971,"name":"Покупка морепродуктов","price":600,"responsible_user_id":"Олег","group_id":0,"status_id":"Принимают решение","pipeline_id":6691762,"loss_reason_id":null,"created_by":9496334,"updated_by":9496334,"created_at":1681646994,"updated_at":1681647077,"closed_at":null,"closest_task_at":null,"is_deleted":false,"custom_fields_values":null,"score":null,"account_id":31001782,"labor_cost":null,"_links":{"self":{"href":"https://gafale7819.amocrm.ru/api/v4/leads/824971?with=contacts&page=1&limit=50"}},"_embedded":{"tags":[],"companies":[{"id":1558243,"_links":{"self":{"href":"https://gafale7819.amocrm.ru/api/v4/companies/1558243?with=contacts&page=1&limit=50"}}}],"contacts":[{"id":1558245,"is_main":true,"_links":{"self":{"href":"https://gafale7819.amocrm.ru/api/v4/contacts/1558245?with=contacts&page=1&limit=50"}}}]}},{"id":825005,"name":"Закупка техники","price":550,"responsible_user_id":"Олег","group_id":0,"status_id":"Переговоры","pipeline_id":6691762,"loss_reason_id":null,"created_by":9496334,"updated_by":9496334,"created_at":1681647221,"updated_at":1681647255,"closed_at":null,"closest_task_at":null,"is_deleted":false,"custom_fields_values":null,"score":null,"account_id":31001782,"labor_cost":null,"_links":{"self":{"href":"https://gafale7819.amocrm.ru/api/v4/leads/825005?with=contacts&page=1&limit=50"}},"_embedded":{"tags":[],"companies":[{"id":1558279,"_links":{"self":{"href":"https://gafale7819.amocrm.ru/api/v4/companies/1558279?with=contacts&page=1&limit=50"}}}],"contacts":[{"id":1558281,"is_main":true,"_links":{"self":{"href":"https://gafale7819.amocrm.ru/api/v4/contacts/1558281?with=contacts&page=1&limit=50"}}}]}}])
+	let leadsData = ref<lead[]>([])
 	// data =	[{"id":824971,"name":"Покупка морепродуктов","price":600,"responsible_user_id":"Олег","group_id":0,"status_id":"Принимают решение","pipeline_id":6691762,"loss_reason_id":null,"created_by":9496334,"updated_by":9496334,"created_at":1681646994,"updated_at":1681647077,"closed_at":null,"closest_task_at":null,"is_deleted":false,"custom_fields_values":null,"score":null,"account_id":31001782,"labor_cost":null,"_links":{"self":{"href":"https://gafale7819.amocrm.ru/api/v4/leads/824971?with=contacts&page=1&limit=50"}},"_embedded":{"tags":[],"companies":[{"id":1558243,"_links":{"self":{"href":"https://gafale7819.amocrm.ru/api/v4/companies/1558243?with=contacts&page=1&limit=50"}}}],"contacts":[{"id":1558245,"is_main":true,"_links":{"self":{"href":"https://gafale7819.amocrm.ru/api/v4/contacts/1558245?with=contacts&page=1&limit=50"}}}]}},{"id":825005,"name":"Закупка техники","price":550,"responsible_user_id":"Олег","group_id":0,"status_id":"Переговоры","pipeline_id":6691762,"loss_reason_id":null,"created_by":9496334,"updated_by":9496334,"created_at":1681647221,"updated_at":1681647255,"closed_at":null,"closest_task_at":null,"is_deleted":false,"custom_fields_values":null,"score":null,"account_id":31001782,"labor_cost":null,"_links":{"self":{"href":"https://gafale7819.amocrm.ru/api/v4/leads/825005?with=contacts&page=1&limit=50"}},"_embedded":{"tags":[],"companies":[{"id":1558279,"_links":{"self":{"href":"https://gafale7819.amocrm.ru/api/v4/companies/1558279?with=contacts&page=1&limit=50"}}}],"contacts":[{"id":1558281,"is_main":true,"_links":{"self":{"href":"https://gafale7819.amocrm.ru/api/v4/contacts/1558281?with=contacts&page=1&limit=50"}}}]}}];
 	export default defineComponent({
 		name: 'Main',
-		// props: {
-		// 	// msg: String,
-		// },
 		components: {
 			Layout,
 			LayoutContent,
@@ -66,29 +60,44 @@
 			WarningOutlined,
 			SearchOutlined,
 		},
-		setup() {
-			const value = ref<string>('');
+		data() {
 			return {
-				value,
-			  data,
+			  leadsData,
+      	query,
+			};
+		},
+		setup() {
+			return {
+			  // leadsData,
       	columns,
 			};
 		},
 		methods: {
-			search(event: { data: any; [key: string]: any;}) {
-				console.log(event.data)
-				fetch('http://vladimir2ht.ddns.net:4000/'+ ((event.data) ? event.data : ''))
+			async search(event: { data: string | null; [key: string]: any;}) {
+				let url: string = event.srcElement._value;
+				if (event.data) url = url + event.data;
+				else url = url.slice(0, -1);
+				// console.log(url)
+				console.log(event)
+				console.log(query)
+				console.log(event.target._value)
+				console.log(event.target.__vnode.el._value)
+				console.log(event.srcElement._value)
+				console.log(event.srcElement.__vnode.el._value)
+				console.log(url && url.length < 3)
+				if (url && url.length < 3) return
+				url = 'http://vladimir2ht.ddns.net:4000/' + ((url) ? '?q=' + url : '');
+				let response: any = {method: "GET", headers: {'Origin': 'http://localhost:8080/'}}
+				response = await fetch(url, response)
+
+				leadsData.value = await response.json()
 			},
 		}
 	});
 </script>
 
 <style scoped lang="scss">
-	.ant-card {
-		background: white;
-	}
 	.ant-layout {
 		padding: 5%;
-
 	}
 </style>

@@ -66,8 +66,7 @@ export class AmoCRMService {
   }
 
   async getLeads(query: string ) {
-    console.log(2, query);
-    query = (query.length > 2) ? '/api/v4/leads?with=contacts&query=' + query : '/api/v4/leads?with=contacts';
+    query = (query && query.length > 2) ? '/api/v4/leads?with=contacts&query=' + query : '/api/v4/leads?with=contacts';
     let leads: Properties = await this.amocrm.request.get(query)
     leads = leads.data._embedded.leads;
 
