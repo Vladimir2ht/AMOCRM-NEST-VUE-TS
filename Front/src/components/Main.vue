@@ -4,16 +4,18 @@
 		<LayoutContent>
 			<Card title="Список сделок">
 				<template #extra>
-					<!-- <WarningOutlined :style="{fontSize: '16px', color: 'orange'}" /> -->
 					<!-- <Tooltip title="Action search" placement="right">
 						<info-circle-outlined style="color: rgba(0, 0, 0, 0.45)" />
 					</Tooltip> -->
-					<Input @change="search($event)" ref="inputField" placeholder="Поиск сделок">
-						<template #suffix>
-							<LoadingOutlined v-if="loading" :style="{fontSize: '16px'}" />
-							<SearchOutlined v-else :style="{fontSize: '16px'}" @click="refocus"/>
-						</template>
-					</Input>
+					<!-- <WarningOutlined :style="{fontSize: '16px', color: 'orange'}" /> -->
+					<div @click.capture="refocus()">
+						<Input @change="search($event)" ref="inputField" placeholder="Поиск сделок">
+							<template #suffix>
+								<LoadingOutlined v-if="loading" :style="{fontSize: '16px'}" />
+								<SearchOutlined v-else :style="{fontSize: '16px'}" />
+							</template>
+						</Input>
+					</div>
 				</template>
 				<Table :dataSource="leadsData" :columns="columns" :loading="loading" :pagination="false">
 					<!-- <template #expandedRowRender="{ record }">
@@ -29,11 +31,15 @@
 
 <script lang="ts">
 	import { defineComponent, ref } from 'vue';
-	import { Card, Input, Layout, LayoutContent, Table, Tooltip,  } from 'ant-design-vue'
+	import { Card, Input, Layout, LayoutContent, Table, Tooltip,  } from 'ant-design-vue';
 	import { LoadingOutlined, SearchOutlined, WarningOutlined } from '@ant-design/icons-vue';
 
 	interface lead {
 		name: string;
+		status_id: string;
+		responsible_user_id: string;
+		price: number;
+		created_at: number | string;
 		[key: string]: any;
 	}
 
@@ -73,18 +79,20 @@
 			};
 		},
 		methods: {
-			async search(event: {[key: string]: any;}) {
+			async search(event: {[key: string]: any; srcElement: {_value: string};}) {
 				await this.$nextTick();
-				let url: string = event.srcElement._value
+				await this.$nextTick(); // одного иногда не хвататет, чтобы получилось нужное значение.
+				let url: string = event.srcElement._value;
+				console.log(url);
 				
 				if (url && url.length < 3) return
 				loading.value = true;
 				url = 'http://vladimir2ht.ddns.net:4000/' + ((url) ? '?q=' + url : '');
-				let response: any = {method: "GET", headers: {'Origin': 'http://localhost:8080/'}}
-				response = await fetch(url, response)
-				response = await response.json()
+				let response: any = {method: "GET", headers: {'Origin': 'http://localhost:8080/'}};
+				response = await fetch(url, response);
+				response = await response.json();
 				response.forEach((lead: lead) => {
-					lead.created_at = new Date(lead.created_at * 1000).toLocaleDateString();
+					lead.created_at = new Date((lead.created_at as number) * 1000).toLocaleDateString();
 				});
 				loading.value = false;
 				leadsData.value = response;
@@ -94,7 +102,7 @@
 			}
 		},
 		mounted() {
-    	if (this.$refs.inputField) {this.search({srcElement: {_value: ''}});}
+    	if (this.$refs.inputField) {this.search({srcElement: {_value: ''}})};
   	},
 	});
 </script>
@@ -105,6 +113,10 @@
 		
 		.ant-layout-content {
 			min-width: 625px;
+
+			.anticon-search {
+				cursor: pointer;
+			}
 		}
 	}
 </style>
