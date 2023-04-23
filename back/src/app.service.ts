@@ -9,11 +9,7 @@ export class AppService {
   ) {}
 
   async getLeads(query) {
-    let it: any = await this.CRMService.getLeads(query);
-    // it = it.data._embedded
-    console.log('+');
-    // return "Hornet";
-
+    const it: any = await this.CRMService.getLeads(query);
     return JSON.stringify(it);
   }
 }
