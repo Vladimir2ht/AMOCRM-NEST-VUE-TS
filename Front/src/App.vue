@@ -23,5 +23,10 @@
 		-moz-osx-font-smoothing: grayscale;
 		color: #000000;
 		height: 100%;
+	
+		.ant-card-extra { // В компоненте эти стили почему-то не работали.
+			display: flex;
+			flex-direction: row;
+		}
 	}
 </style>

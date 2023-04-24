@@ -8,8 +8,7 @@ export class AppService {
     @Inject(AmoCRMService) private readonly CRMService: AmoCRMService,
   ) {}
 
-  async getLeads(query) {
-    const it: any = await this.CRMService.getLeads(query);
-    return JSON.stringify(it);
+  async getLeads(query: string): Promise<string> {
+    return JSON.stringify(await this.CRMService.getLeads(query));
   }
 }
