@@ -13,6 +13,8 @@ interface Lead {
   [key: string]: any;
 }
 
+const filePath = resolve(__dirname, './token.json');
+
 @Injectable()
 export class AmoCRMService {
   private readonly amocrm: Client;
@@ -29,7 +31,6 @@ export class AmoCRMService {
        },
     });
 
-    const filePath = resolve(__dirname, './token.json');
     if (!existsSync(filePath)) {
       (async () => {
         const status = await this.amocrm.connection.connect();
@@ -64,6 +65,17 @@ export class AmoCRMService {
     })();
   }
 
+  // Этот метод должен пригодиться для получения информации не только о сделках.
+  /**  */
+  // private async insertAdditionInfo( leads ): Promise<Lead[]> {
+  //   (await Promise.all( leads.map(lead => {
+  //     return this.amocrm.request.get(`/api/v4/leads/pipelines/${lead.pipeline_id}/statuses/${lead.status_id}`)
+  //   }))).forEach((element, i) => {
+  //     leads[i].status_id = element.data.name;
+  //   });
+  //   return await leads
+  // }
+
   async getLeads(query: string ): Promise<Lead[]> {
     query = (query && query.length > 2) ? '/api/v4/leads?with=contacts&query=' + query : '/api/v4/leads?with=contacts';
     let leads: any = await this.amocrm.request.get(query);
@@ -71,10 +83,15 @@ export class AmoCRMService {
     if (!leads.data._embedded) return [];
     leads = leads.data._embedded.leads;
 
+    
+    // leads = this.insertAdditionInfo(leads)
+
+
     // async function GetAdditionalInfo(where: string, ) {
-      
     // }
     
+    // сделать учёт ограничения на 7 запросов в секунду.
+
     (await Promise.all( leads.map(lead => {
       return this.amocrm.request.get(`/api/v4/leads/pipelines/${lead.pipeline_id}/statuses/${lead.status_id}`)
     }))).forEach((element, i) => {
@@ -85,6 +102,7 @@ export class AmoCRMService {
       return this.amocrm.request.get(`/api/v4/users/${lead.responsible_user_id}`)
     }))).forEach((element, i) => {
       leads[i].responsible_user_id = element.data.name;
+      leads[i].user_mail = element.data.email;
     });
 
     return leads

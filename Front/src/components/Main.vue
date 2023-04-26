@@ -80,24 +80,30 @@
 			};
 		},
 		methods: {
-			async search(event: {[key: string]: any; srcElement: {_value: string};}) {
+			async search(event: {[key: string]: any; srcElement: {_value: string};}): Promise<void> {
 				await this.$nextTick();
 				await this.$nextTick(); // одного иногда не хвататет, чтобы получилось нужное значение.
 				let url: string = event.srcElement._value;
-				console.log(url);
-				
-				if (url && url.length < 3) return lessSymbols.value = true;
-				else lessSymbols.value = false;
+
+				if (url && url.length < 3) {
+					lessSymbols.value = true;
+					return
+				}	else lessSymbols.value = false;
 				loading.value = true;
+
 				url = 'http://vladimir2ht.ddns.net:4000/' + ((url) ? '?q=' + url : '');
-				let response: any = {method: "GET", headers: {'Origin': 'http://localhost:8080/'}};
-				response = await fetch(url, response);
-				response = await response.json();
-				response.forEach((lead: Lead) => {
+				const response: Response = await fetch(url, {
+					method: 'GET',
+					headers: { 'Origin': 'http://localhost:8080/' }
+				});
+				const responseData: Lead[] = await response.json();
+				
+				responseData.forEach(lead => {
 					lead.created_at = new Date((lead.created_at as number) * 1000).toLocaleDateString();
 				});
+				
 				loading.value = false;
-				leadsData.value = response;
+				leadsData.value = responseData;
 			},
 			refocus() {
 				this.$nextTick(() => (this.$refs.inputField as any).focus());
