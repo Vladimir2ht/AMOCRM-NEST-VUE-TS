@@ -2,7 +2,6 @@ import { resolve } from "path";
 import { existsSync, readFileSync, writeFileSync } from "fs";
 import { Injectable } from '@nestjs/common';
 import { Client } from 'amocrm-js';
-// import { ConfigService } from '@nestjs/config';
 
 interface Lead {
   name: string;
@@ -65,32 +64,11 @@ export class AmoCRMService {
     })();
   }
 
-  // Этот метод должен пригодиться для получения информации не только о сделках.
-  /**  */
-  // private async insertAdditionInfo( leads ): Promise<Lead[]> {
-  //   (await Promise.all( leads.map(lead => {
-  //     return this.amocrm.request.get(`/api/v4/leads/pipelines/${lead.pipeline_id}/statuses/${lead.status_id}`)
-  //   }))).forEach((element, i) => {
-  //     leads[i].status_id = element.data.name;
-  //   });
-  //   return await leads
-  // }
-
   async getLeads(query: string ): Promise<Lead[]> {
     query = (query && query.length > 2) ? '/api/v4/leads?with=contacts&query=' + query : '/api/v4/leads?with=contacts';
     let leads: any = await this.amocrm.request.get(query);
-    // let leads: {[key: string]: any} = await this.amocrm.request.get(query);
     if (!leads.data._embedded) return [];
     leads = leads.data._embedded.leads;
-
-    
-    // leads = this.insertAdditionInfo(leads)
-
-
-    // async function GetAdditionalInfo(where: string, ) {
-    // }
-    
-    // сделать учёт ограничения на 7 запросов в секунду.
 
     (await Promise.all( leads.map(lead => {
       return this.amocrm.request.get(`/api/v4/leads/pipelines/${lead.pipeline_id}/statuses/${lead.status_id}`)
@@ -106,7 +84,6 @@ export class AmoCRMService {
     });
 
     return leads
-    // return (leads as Lead)
 	}
 
 }
