@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
 import { AmoCRMService } from './amocrm.service';
-// import { ConfigModule } from '@nestjs/config';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
-  // imports: [],
+  imports: [ConfigModule],
   providers: [AmoCRMService],
   exports: [AmoCRMService],
 })

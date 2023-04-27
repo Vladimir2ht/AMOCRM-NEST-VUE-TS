@@ -16,4 +16,4 @@ $ npm install
 ```
 $ npm run dev
 ```
-Данные интеграции и вашего профиля в amoCRM нужно вписать в файл .back/src/amocrm/amocrm.service.ts
+Данные интеграции и вашего профиля в amoCRM нужно вписать в файл .back/src/configurations/index.ts или в свой .env файл.
