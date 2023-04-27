@@ -3,13 +3,26 @@ import { existsSync, readFileSync, writeFileSync } from "fs";
 import { Injectable } from '@nestjs/common';
 import { Client } from 'amocrm-js';
 import { ConfigService } from '@nestjs/config';
+import { IAPIResponse } from "amocrm-js/dist/interfaces/common";
 
+// Такие неточные типы сделаны для ускорения разработки.
+// Известно что это плохая практика. Планируется утоочнение типов.
 interface Lead {
   name: string;
-  status_id: string;
-  responsible_user_id: string;
+  status_id: string | number;
+  responsible_user_id: string | number;
   price: number;
   created_at: number;
+  [key: string]: any; 
+}
+
+interface ResponseElement {
+  data: {
+    name?: string;
+    email?: string;
+    _embedded?: Lead[];
+    [key: string]: any;
+  }
   [key: string]: any;
 }
 
@@ -67,19 +80,19 @@ export class AmoCRMService {
 
   async getLeads(query: string ): Promise<Lead[]> {
     query = (query && query.length > 2) ? '/api/v4/leads?with=contacts&query=' + query : '/api/v4/leads?with=contacts';
-    let leads: any = await this.amocrm.request.get(query);
-    if (!leads.data._embedded) return [];
-    leads = leads.data._embedded.leads;
+    const response: IAPIResponse<ResponseElement> = await this.amocrm.request.get(query);
+    if (!response.data._embedded) return [];
+    const leads: Lead[] = response.data._embedded.leads;
 
     (await Promise.all( leads.map(lead => {
       return this.amocrm.request.get(`/api/v4/leads/pipelines/${lead.pipeline_id}/statuses/${lead.status_id}`)
-    }))).forEach((element, i) => {
+    }))).forEach((element: IAPIResponse<ResponseElement>, i) => {
       leads[i].status_id = element.data.name;
     });
 
     (await Promise.all( leads.map(lead => {
       return this.amocrm.request.get(`/api/v4/users/${lead.responsible_user_id}`)
-    }))).forEach((element, i) => {
+    }))).forEach((element: IAPIResponse<ResponseElement>, i) => {
       leads[i].responsible_user_id = element.data.name;
       leads[i].user_mail = element.data.email;
     });
