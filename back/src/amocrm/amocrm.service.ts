@@ -36,13 +36,14 @@ export class AmoCRMService {
     if (!existsSync(filePath)) {
       (async () => {
         const status = await this.amocrm.connection.connect();
-        console.log(status);
+        console.log('First connection: ', status);
       })();
     }
     
     const updateConnection = async () => {
       if (!this.amocrm.connection.isTokenExpired()) return;
-      await this.amocrm.connection.update();
+        console.log('Often connection: ');
+        await this.amocrm.connection.update();
     }
     
     (async () => {
@@ -52,8 +53,10 @@ export class AmoCRMService {
         // обновление токена по истечению
         const token = this.amocrm.token.getValue();
         writeFileSync(filePath, JSON.stringify(token));
+        console.log(new Date())
         clearTimeout(renewTimeout);
-        renewTimeout = setTimeout(updateConnection, token.expires_in * 990); // Не 1000, чтобы обновить до окончания действия.
+        renewTimeout = setTimeout(updateConnection, 60000); // Не 1000, чтобы обновить до окончания действия.
+        // renewTimeout = setTimeout(updateConnection, token.expires_in * 990); // Не 1000, чтобы обновить до окончания действия.
       });
   
       try {
@@ -62,7 +65,7 @@ export class AmoCRMService {
         this.amocrm.token.setValue(currentToken);
       } catch (e) {
         console.log('ER1', e)
-        // Файл не найден, некорректный JSON-токен
+        // Файл не найден, некорректный JSON-токен.
       }
     })();
   }
