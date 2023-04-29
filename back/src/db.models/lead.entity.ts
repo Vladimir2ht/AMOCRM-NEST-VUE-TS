@@ -22,14 +22,14 @@ export class lead {
 	@Column()
   status_id: number;
 
-	// @Column()
-  // status_id: number;
+	@Column()
+  created_at: number;
 
-	// @Column()
-  // status_id: number;
+	@Column()
+  created_by: number;
 
-	// @Column()
-  // status_id: number;
+	@Column()
+  updated_by: number;
 
 	// @Column()
   // status_id: number;

@@ -1,8 +1,10 @@
+import { existsSync, readFileSync, writeFile } from "fs";
 import { resolve } from "path";
-import { existsSync, readFileSync, writeFileSync } from "fs";
+import { EventEmitter } from "events";
 import { Injectable } from '@nestjs/common';
 import { Client } from 'amocrm-js';
 import { ConfigService } from "@nestjs/config";
+import { ITokenData } from "amocrm-js/dist/interfaces/common";
 
 interface Lead {
   name: string;
@@ -18,6 +20,9 @@ const filePath = resolve(__dirname, './token.json');
 @Injectable()
 export class AmoCRMService {
   private readonly amocrm: Client;
+  private renewTimeout: NodeJS.Timeout;
+  private readonly updateConnection: () => void;
+  // private readonly updateConnection;
 
   constructor(private configService: ConfigService) {
 
@@ -38,36 +43,39 @@ export class AmoCRMService {
         const status = await this.amocrm.connection.connect();
         console.log('First connection: ', status);
       })();
-    }
-    
-    const updateConnection = async () => {
-      if (!this.amocrm.connection.isTokenExpired()) return;
-        console.log('Often connection: ');
-        await this.amocrm.connection.update();
-    }
-    
-    (async () => {
-      let renewTimeout: NodeJS.Timeout;
-  
-      this.amocrm.token.on('change', () => {
-        // обновление токена по истечению
-        const token = this.amocrm.token.getValue();
-        writeFileSync(filePath, JSON.stringify(token));
-        console.log(new Date())
-        clearTimeout(renewTimeout);
-        renewTimeout = setTimeout(updateConnection, 60000); // Не 1000, чтобы обновить до окончания действия.
-        // renewTimeout = setTimeout(updateConnection, token.expires_in * 990); // Не 1000, чтобы обновить до окончания действия.
-      });
-  
+    } else {
       try {
         const json = readFileSync(filePath).toString();
-        const currentToken = JSON.parse(json);
+        const currentToken: ITokenData = JSON.parse(json);
         this.amocrm.token.setValue(currentToken);
+        console.log('Токен загружен.');
       } catch (e) {
-        console.log('ER1', e)
-        // Файл не найден, некорректный JSON-токен.
+        console.log('Вероятно, файл не найден или некорректный JSON-токен. Ошибка: ', e);
       }
-    })();
+    }
+
+    const emitter= new EventEmitter();
+    
+    this.updateConnection = async (): Promise<void> => {
+      // if (!this.amocrm.connection.isTokenExpired()) return;
+      await this.amocrm.connection.update();
+      writeFile(
+        filePath,
+        JSON.stringify(this.amocrm.token.getValue()),
+        (err) => {if (err) console.error(err)}
+      );
+      emitter.emit('refresh token');
+      console.log('Often connection updated');
+    }
+
+    // Переделать на асинхронный.
+    emitter.on('refresh token', (): void => {
+      clearTimeout(this.renewTimeout);
+      // this.renewTimeout = setTimeout(() => this.updateConnection(), 20000);
+      this.renewTimeout = setTimeout(this.updateConnection, this.amocrm.token.getValue().expires_in * 990); // Не 1000, чтобы обновить до окончания действия.
+    });
+    this.renewTimeout = setTimeout(() => this.updateConnection(), 3000);
+    
   }
 
   async getLeads(query: string ): Promise<Lead[]> {
