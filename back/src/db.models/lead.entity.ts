@@ -2,8 +2,9 @@
 import { Entity, Column, PrimaryGeneratedColumn, OneToMany, PrimaryColumn } from 'typeorm';
 // import { Photo } from '../photos/photo.entity';
 
-@Entity()
-export class lead {
+@Entity({name: 'Leads'})
+export class Lead {
+
   @PrimaryColumn()
   id: number;
 

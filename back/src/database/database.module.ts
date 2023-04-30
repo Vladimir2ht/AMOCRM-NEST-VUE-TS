@@ -1,12 +1,12 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
-import { DatabaseService } from './connection.service';
-import { DbController } from './db.controller.controller';
+// import { ConfigModule } from '@nestjs/config';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { Lead } from 'src/db.models/lead.entity';
+import { DatabaseService } from './db.service';
 
 @Module({
-  imports: [ConfigModule],
-  controllers: [DbController],
+  imports: [TypeOrmModule.forFeature([Lead])],
   providers: [DatabaseService],
-  exports: [DbController],
+  exports: [DatabaseService],
 })
 export class DatabaseModule {}
